@@ -15,9 +15,8 @@ import (
 )
 
 const (
-	startCommand string = "/start"
-	RepoURL             = "https://api.github.com/search/repositories"
-
+	startCommand           string = "/start"
+	RepoURL                string = "https://api.github.com/search/repositories"
 	telegramApiBaseUrl     string = "https://api.telegram.org/bot"
 	telegramApiSendMessage string = "/sendMessage"
 	telegramTokenEnv       string = "GITHUB_BOT_TOKEN"
@@ -25,20 +24,26 @@ const (
 
 var lenStartCommand int = len(startCommand)
 
+// Chat struct stores the id of the chat in question.
 type Chat struct {
 	Id int `json:"id"`
 }
 
+// Message struct store Chat and text data.
 type Message struct {
 	Text string `json:"text"`
 	Chat Chat   `json:"chat"`
 }
 
+// Update event.
 type Update struct {
 	UpdateId int     `json:"update_id"`
 	Message  Message `json:"message"`
 }
 
+// HandleTelegramWebhook is the web hook that has to have the handler signature.
+// Listen for incoming web requests from Telegram events and
+// responds back with the treding repositories on GitHub.
 func HandleTelegramWebhook(_ http.ResponseWriter, r *http.Request) {
 	var update, err = parseTelegramRequest(r)
 	if err != nil {
@@ -76,7 +81,7 @@ func HandleTelegramWebhook(_ http.ResponseWriter, r *http.Request) {
 	}
 
 	s := buf.String()
-	// testString := "hello"
+
 	var telegramResponseBody, errTelegram = sendTextToTelegramChat(update.Message.Chat.Id, s)
 	if errTelegram != nil {
 		log.Printf("got error %s from telegram, response body is %s", errTelegram.Error(), telegramResponseBody)
@@ -87,6 +92,8 @@ func HandleTelegramWebhook(_ http.ResponseWriter, r *http.Request) {
 
 }
 
+// parseTelegramRequest decodes and incoming request from the Telegram hook,
+// and returns an Update pointer.
 func parseTelegramRequest(r *http.Request) (*Update, error) {
 	var update Update
 
@@ -107,6 +114,8 @@ func sanitize(s string) string {
 
 }
 
+// sendTextToTelegramChat sends the response from the GitHub back to the chat,
+// given a chat it and the text from GitHub.
 func sendTextToTelegramChat(chatId int, text string) (string, error) {
 	log.Printf("Sending %s to chat_id: %d", text, chatId)
 
