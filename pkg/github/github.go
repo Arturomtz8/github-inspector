@@ -10,18 +10,20 @@ import (
 
 const RepoURL = "https://api.github.com/search/repositories"
 
+// TrendingSearchResult struct holds an slice of trending repositories on GitHub and its count.
 type TrendingSearchResult struct {
 	TotalCount int
 	Items      []*RepoTrending
 }
 
+// RepoTrending is the treding repository reprentation.
 type RepoTrending struct {
 	Full_name         string
-	Html_url          string //`json:"html_url"`
+	Html_url          string
 	Description       string
-	Created_at        time.Time //`json:"created_at"`
-	Updated_at        time.Time //`json:"updated_at"`
-	Pushed_at         time.Time //`json:"pushed_at"`
+	Created_at        time.Time
+	Updated_at        time.Time
+	Pushed_at         time.Time
 	Size              int
 	Language          string
 	Stargazers_count  int
@@ -31,6 +33,9 @@ type RepoTrending struct {
 	Topics            []string
 }
 
+// SearchGithubTrending function returns a list treding repositores on GitHub.
+// The function returns this list in the form of a pointer to a TrendingSearchResult.
+// If some thing wrong happens, it returns an error.
 func SearchGithubTrending(term string) (*TrendingSearchResult, error) {
 	// in case receiving more values, consider changing to slice term string[]
 	// q := url.QueryEscape(strings.Join(terms, " "))
