@@ -1,40 +1,27 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
 	"fmt"
 
+	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/spf13/cobra"
+
+	"github.com/Arturomtz8/github-inspector/pkg/telegram"
 )
 
-// telegramCmd represents the telegram command
+// telegramCmd represents the telegram command.
 var telegramCmd = &cobra.Command{
 	Use:   "telegram",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "telegram commands that runs a web hook which responds with trending projects on GitHub",
+	Long: `Telegram commands that runs a web hook which responds with trending projects on GitHub.
+  Originally intended to run on Google Cloud Functions.`,
+	Run: func(_ *cobra.Command, _ []string) {
+		fmt.Println("telegram bot called")
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("telegram called")
+		functions.HTTP("HandleTelegramWebhook", telegram.HandleTelegramWebhook)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(telegramCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// telegramCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// telegramCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
