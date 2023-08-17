@@ -1,4 +1,8 @@
-package telegram
+// This is the function that is called by google functions,
+// the structure of the code must be like specified in the
+// docs https://cloud.google.com/functions/docs/writing#directory-structure
+
+package pkg
 
 import (
 	"bytes"
@@ -12,6 +16,7 @@ import (
 	"text/template"
 
 	"github.com/Arturomtz8/github-inspector/pkg/github"
+	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
 
 const (
@@ -41,6 +46,11 @@ type Update struct {
 	Message  Message `json:"message"`
 }
 
+// Register an HTTP function with the Functions Framework
+func init() {
+	functions.HTTP("HandleTelegramWebhook", HandleTelegramWebhook)
+}
+
 // HandleTelegramWebhook is the web hook that has to have the handler signature.
 // Listen for incoming web requests from Telegram events and
 // responds back with the treding repositories on GitHub.
@@ -64,7 +74,7 @@ func HandleTelegramWebhook(_ http.ResponseWriter, r *http.Request) {
 	Url:           {{.Html_url}}
 	Description:   {{.Description}}
 	Created at:    {{.Created_at }}
-	Update _at:    {{.Updated_at}} 
+	Update 	at:    {{.Updated_at}} 
 	Pushed at:     {{.Pushed_at}}
 	Size(KB):      {{.Size}}
 	Language:      {{.Language}}
@@ -109,6 +119,7 @@ func sanitize(s string) string {
 		if s[:lenStartCommand] == startCommand {
 			s = s[lenStartCommand:]
 		}
+
 	}
 	return s
 
