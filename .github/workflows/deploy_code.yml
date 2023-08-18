@@ -2,9 +2,13 @@ name: Deploy to google function
 
 
 on:
-  [push, pull_request]:
+  push:
     branches:
-      - [fix-trigger]
+      - fix-trigger
+  pull_request:
+    branches:
+      - fix-trigger
+
 env:
   KEYFILE_CONTENTS: ${{ secrets.KEYFILE_CONTENTS }}
 
