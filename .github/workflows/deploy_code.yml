@@ -9,9 +9,6 @@ on:
     branches:
       - fix-trigger
 
-env:
-  KEYFILE_CONTENTS: ${{ secrets.KEYFILE_CONTENTS }}
-
 jobs:
   job_id:
     runs-on: 'ubuntu-latest'
@@ -25,7 +22,7 @@ jobs:
     - id: 'auth'
       uses: 'google-github-actions/auth@v1'
       with:
-        credentials_json: $KEYFILE_CONTENTS 
+        credentials_json: ${{ secrets.KEYFILE_CONTENTS }}
 
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v1'
