@@ -7,6 +7,7 @@ package pkg
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -20,14 +21,14 @@ import (
 )
 
 const (
-	startCommand           string = "/start"
+	searchCommand          string = "/search"
 	RepoURL                string = "https://api.github.com/search/repositories"
 	telegramApiBaseUrl     string = "https://api.telegram.org/bot"
 	telegramApiSendMessage string = "/sendMessage"
 	telegramTokenEnv       string = "GITHUB_BOT_TOKEN"
 )
 
-var lenStartCommand int = len(startCommand)
+var lenSearchCommand int = len(searchCommand)
 
 // Chat struct stores the id of the chat in question.
 type Chat struct {
@@ -61,7 +62,11 @@ func HandleTelegramWebhook(_ http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var sanitizedString = sanitize(update.Message.Text)
+	sanitizedString, err := sanitize(update.Message.Text)
+	if err != nil {
+		sendTextToTelegramChat(update.Message.Chat.Id, sanitizedString)
+		log.Fatal("Invalid input")
+	}
 
 	result, err := github.SearchGithubTrending(sanitizedString)
 	if err != nil {
@@ -114,14 +119,17 @@ func parseTelegramRequest(r *http.Request) (*Update, error) {
 	return &update, nil
 }
 
-func sanitize(s string) string {
-	if len(s) >= lenStartCommand {
-		if s[:lenStartCommand] == startCommand {
-			s = s[lenStartCommand:]
+// returns the term that wants to be searched
+func sanitize(s string) (string, error) {
+	if len(s) >= lenSearchCommand {
+		if s[:lenSearchCommand] == searchCommand {
+			s = s[lenSearchCommand:]
 		}
 
+	} else {
+		return "You must enter /search {languague}", fmt.Errorf("Invalid value")
 	}
-	return s
+	return s, nil
 
 }
 
