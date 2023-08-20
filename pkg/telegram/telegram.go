@@ -66,11 +66,13 @@ func HandleTelegramWebhook(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		sendTextToTelegramChat(update.Message.Chat.Id, sanitizedString)
 		fmt.Fprint(w, "Invald input")
+		return
 	}
 
 	result, err := github.SearchGithubTrending(sanitizedString)
 	if err != nil {
 		fmt.Fprintf(w, "An error has ocurred, %s!", err)
+		return
 	}
 
 	const templ = `{{.TotalCount}} repositories:
