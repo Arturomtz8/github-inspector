@@ -55,7 +55,7 @@ func init() {
 // HandleTelegramWebhook is the web hook that has to have the handler signature.
 // Listen for incoming web requests from Telegram events and
 // responds back with the treding repositories on GitHub.
-func HandleTelegramWebhook(_ http.ResponseWriter, r *http.Request) {
+func HandleTelegramWebhook(w http.ResponseWriter, r *http.Request) {
 	var update, err = parseTelegramRequest(r)
 	if err != nil {
 		log.Printf("error parsing update, %s", err.Error())
@@ -65,12 +65,12 @@ func HandleTelegramWebhook(_ http.ResponseWriter, r *http.Request) {
 	sanitizedString, err := sanitize(update.Message.Text)
 	if err != nil {
 		sendTextToTelegramChat(update.Message.Chat.Id, sanitizedString)
-		log.Fatal("Invalid input")
+		fmt.Fprint(w, "Invald input")
 	}
 
 	result, err := github.SearchGithubTrending(sanitizedString)
 	if err != nil {
-		log.Fatal("Error with searchgithubtrending", err)
+		fmt.Fprintf(w, "An error has ocurred, %s!", err)
 	}
 
 	const templ = `{{.TotalCount}} repositories:
