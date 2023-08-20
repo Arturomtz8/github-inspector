@@ -121,11 +121,14 @@ func parseTelegramRequest(r *http.Request) (*Update, error) {
 	return &update, nil
 }
 
-// returns the term that wants to be searched
+// returns the term that wants to be searched or
+// an string that specifies the expected input
 func sanitize(s string) (string, error) {
 	if len(s) >= lenSearchCommand {
 		if s[:lenSearchCommand] == searchCommand {
 			s = s[lenSearchCommand:]
+		} else {
+			return "You must enter /search {languague}", fmt.Errorf("Invalid value")
 		}
 
 	} else {
