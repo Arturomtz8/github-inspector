@@ -2,7 +2,7 @@
 // the structure of the code must be like specified in the
 // docs https://cloud.google.com/functions/docs/writing#directory-structure
 
-package pkg
+package telegram
 
 import (
 	"bytes"
