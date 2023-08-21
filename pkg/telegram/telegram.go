@@ -128,11 +128,11 @@ func sanitize(s string) (string, error) {
 		if s[:lenSearchCommand] == searchCommand {
 			s = s[lenSearchCommand:]
 		} else {
-			return "You must enter /search {languague}", fmt.Errorf("Invalid value")
+			return "", errors.New("invalid value: you must enter /search {languague}")
 		}
 
 	} else {
-		return "You must enter /search {languague}", fmt.Errorf("Invalid value")
+		return "", errors.New("invalid value: you must enter /search {languague}")
 	}
 	return s, nil
 
