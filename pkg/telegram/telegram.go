@@ -1,8 +1,14 @@
-package telegram
+// This is the function that is called by google functions,
+// the structure of the code must be like specified in the
+// docs https://cloud.google.com/functions/docs/writing#directory-structure
+
+package pkg
 
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,17 +18,18 @@ import (
 	"text/template"
 
 	"github.com/Arturomtz8/github-inspector/pkg/github"
+	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
 
 const (
-	startCommand           string = "/start"
+	searchCommand          string = "/search"
 	RepoURL                string = "https://api.github.com/search/repositories"
 	telegramApiBaseUrl     string = "https://api.telegram.org/bot"
 	telegramApiSendMessage string = "/sendMessage"
 	telegramTokenEnv       string = "GITHUB_BOT_TOKEN"
 )
 
-var lenStartCommand int = len(startCommand)
+var lenSearchCommand int = len(searchCommand)
 
 // Chat struct stores the id of the chat in question.
 type Chat struct {
@@ -41,21 +48,33 @@ type Update struct {
 	Message  Message `json:"message"`
 }
 
+// Register an HTTP function with the Functions Framework
+func init() {
+	functions.HTTP("HandleTelegramWebhook", HandleTelegramWebhook)
+}
+
 // HandleTelegramWebhook is the web hook that has to have the handler signature.
 // Listen for incoming web requests from Telegram events and
 // responds back with the treding repositories on GitHub.
-func HandleTelegramWebhook(_ http.ResponseWriter, r *http.Request) {
+func HandleTelegramWebhook(w http.ResponseWriter, r *http.Request) {
 	var update, err = parseTelegramRequest(r)
 	if err != nil {
 		log.Printf("error parsing update, %s", err.Error())
 		return
 	}
 
-	var sanitizedString = sanitize(update.Message.Text)
+	sanitizedString, err := sanitize(update.Message.Text)
+	if err != nil {
+		sendTextToTelegramChat(update.Message.Chat.Id, err.Error())
+		fmt.Fprint(w, "Invald input")
+		return
+	}
 
 	result, err := github.SearchGithubTrending(sanitizedString)
 	if err != nil {
-		log.Fatal("Error with searchgithubtrending", err)
+		sendTextToTelegramChat(update.Message.Chat.Id, err.Error())
+		fmt.Fprintf(w, "An error has ocurred, %s!", err)
+		return
 	}
 
 	const templ = `{{.TotalCount}} repositories:
@@ -64,7 +83,7 @@ func HandleTelegramWebhook(_ http.ResponseWriter, r *http.Request) {
 	Url:           {{.Html_url}}
 	Description:   {{.Description}}
 	Created at:    {{.Created_at }}
-	Update _at:    {{.Updated_at}} 
+	Update 	at:    {{.Updated_at}} 
 	Pushed at:     {{.Pushed_at}}
 	Size(KB):      {{.Size}}
 	Language:      {{.Language}}
@@ -104,13 +123,20 @@ func parseTelegramRequest(r *http.Request) (*Update, error) {
 	return &update, nil
 }
 
-func sanitize(s string) string {
-	if len(s) >= lenStartCommand {
-		if s[:lenStartCommand] == startCommand {
-			s = s[lenStartCommand:]
+// returns the term that wants to be searched or
+// an string that specifies the expected input
+func sanitize(s string) (string, error) {
+	if len(s) >= lenSearchCommand {
+		if s[:lenSearchCommand] == searchCommand {
+			s = s[lenSearchCommand:]
+		} else {
+			return "", errors.New("invalid value: you must enter /search {languague}")
 		}
+
+	} else {
+		return "", errors.New("invalid value: you must enter /search {languague}")
 	}
-	return s
+	return s, nil
 
 }
 
