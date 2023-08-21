@@ -4,10 +4,7 @@ name: Deploy to google function
 on:
   push:
     branches:
-      - fix-trigger
-  pull_request:
-    branches:
-      - fix-trigger
+      - main
 
 jobs:
   job_id:
