@@ -7,6 +7,7 @@ package pkg
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -64,13 +65,14 @@ func HandleTelegramWebhook(w http.ResponseWriter, r *http.Request) {
 
 	sanitizedString, err := sanitize(update.Message.Text)
 	if err != nil {
-		sendTextToTelegramChat(update.Message.Chat.Id, sanitizedString)
+		sendTextToTelegramChat(update.Message.Chat.Id, err.Error())
 		fmt.Fprint(w, "Invald input")
 		return
 	}
 
 	result, err := github.SearchGithubTrending(sanitizedString)
 	if err != nil {
+		sendTextToTelegramChat(update.Message.Chat.Id, err.Error())
 		fmt.Fprintf(w, "An error has ocurred, %s!", err)
 		return
 	}
