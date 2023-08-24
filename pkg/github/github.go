@@ -18,22 +18,22 @@ type TrendingSearchResult struct {
 
 // RepoTrending is the treding repository reprentation.
 type RepoTrending struct {
-	Full_name   string
-	Html_url    string
+	FullName    string `json:"full_name"`
+	HtmlURL     string `json:"html_url"`
 	Description string
 	Owner       struct {
 		Login string
 	}
-	Created_at        time.Time
-	Updated_at        time.Time
-	Pushed_at         time.Time
-	Size              int
-	Language          string
-	Stargazers_count  int
-	Forks_count       int
-	Archived          bool
-	Open_issues_count int
-	Topics            []string
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	PushedAt        time.Time `json:"pushed_at"`
+	Size            int
+	Language        string
+	StargazersCount int `json:"stargazers_count"`
+	ForksCount      int `json:"forks_count"`
+	Archived        bool
+	OpenIssuesCount int `json:"open_issues_count"`
+	Topics          []string
 }
 
 // SearchGithubTrending function returns a list treding repositores on GitHub.

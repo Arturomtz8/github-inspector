@@ -22,4 +22,8 @@ func TestSearchGithubTrending(t *testing.T) {
 	results, err := github.SearchGithubTrending("go", s.URL)
 	require.NoError(t, err)
 	require.Len(t, results.Items, 5)
+	require.Equal(t, results.Items[0].FullName, "kriskowal/q")
+	require.Equal(t, results.Items[0].Owner.Login, "kriskowal")
+	require.Equal(t, results.Items[0].Description, "A promise library for JavaScript")
+	require.Equal(t, results.Items[0].StargazersCount, 14955)
 }
