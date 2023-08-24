@@ -70,7 +70,7 @@ func HandleTelegramWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := github.SearchGithubTrending(sanitizedString)
+	result, err := github.SearchGithubTrending(sanitizedString, RepoURL)
 	if err != nil {
 		sendTextToTelegramChat(update.Message.Chat.Id, err.Error())
 		fmt.Fprintf(w, "An error has ocurred, %s!", err)
