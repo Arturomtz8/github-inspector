@@ -79,17 +79,18 @@ func HandleTelegramWebhook(w http.ResponseWriter, r *http.Request) {
 
 	const templ = `{{.TotalCount}} repositories:
 	{{range .Items}}----------------------------------------
-	Name:          {{.Full_name}}
-	Url:           {{.Html_url}}
+	Name:          {{.FullName}}
+	Url:           {{.HtmlURL}}
 	Description:   {{.Description}}
-	Created at:    {{.Created_at }}
-	Update 	at:    {{.Updated_at}} 
-	Pushed at:     {{.Pushed_at}}
+  Author:        {{.Owner.Login}}
+	Created at:    {{.CreatedAt}}
+	Update at:     {{.UpdatedAt}
+	Pushed at:     {{.PushedAt}}
 	Size(KB):      {{.Size}}
 	Language:      {{.Language}}
-	Stargazers:    {{.Stargazers_count}}
+	Stargazers:    {{.StargazersCount}}
 	Archived:      {{.Archived}}
-	Open Issues:   {{.Open_issues_count}}
+	Open Issues:   {{.OpenIssuesCount}}
 	Topics:        {{.Topics}}
 	{{end}}`
 
