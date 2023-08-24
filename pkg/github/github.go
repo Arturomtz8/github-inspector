@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-const RepoURL = "https://api.github.com/search/repositories"
-
 // TrendingSearchResult struct holds an slice of trending repositories on GitHub and its count.
 type TrendingSearchResult struct {
 	TotalCount int
