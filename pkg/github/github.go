@@ -18,9 +18,12 @@ type TrendingSearchResult struct {
 
 // RepoTrending is the treding repository reprentation.
 type RepoTrending struct {
-	Full_name         string
-	Html_url          string
-	Description       string
+	Full_name   string
+	Html_url    string
+	Description string
+	Owner       struct {
+		Login string
+	}
 	Created_at        time.Time
 	Updated_at        time.Time
 	Pushed_at         time.Time
@@ -36,28 +39,26 @@ type RepoTrending struct {
 // SearchGithubTrending function returns a list treding repositores on GitHub.
 // The function returns this list in the form of a pointer to a TrendingSearchResult.
 // If some thing wrong happens, it returns an error.
-func SearchGithubTrending(term string) (*TrendingSearchResult, error) {
+func SearchGithubTrending(term, APIurl string) (*TrendingSearchResult, error) {
 	// in case receiving more values, consider changing to slice term string[]
 	// q := url.QueryEscape(strings.Join(terms, " "))
 	term = url.QueryEscape(term)
 	// https://api.github.com/search/issues?q=stress+test+label:bug+language:python+state:closed&per_page=100
-	resp, err := http.Get(RepoURL + "?q=stars:<=500+archived:false+language:" + term + "&per_page=5&sort=stars&order=desc")
+	resp, err := http.Get(APIurl + "?q=stars:<=500+archived:false+language:" + term + "&per_page=5&sort=stars&order=desc")
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
-		resp.Body.Close()
 		return nil, fmt.Errorf("search query failed: %s", resp.Status)
 
 	}
 
 	var result TrendingSearchResult
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		resp.Body.Close()
 		return nil, err
 	}
-
-	resp.Body.Close()
 
 	result.TotalCount = len(result.Items)
 	return &result, nil
