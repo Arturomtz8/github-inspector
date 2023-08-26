@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+// Owner struct is the author of the repo.
+type Owner struct {
+	Login string
+}
+
 // TrendingSearchResult struct holds an slice of trending repositories on GitHub and its count.
 type TrendingSearchResult struct {
 	TotalCount int
@@ -16,12 +21,10 @@ type TrendingSearchResult struct {
 
 // RepoTrending is the treding repository reprentation.
 type RepoTrending struct {
-	FullName    string `json:"full_name"`
-	HtmlURL     string `json:"html_url"`
-	Description string
-	Owner       struct {
-		Login string
-	}
+	FullName        string `json:"full_name"`
+	HtmlURL         string `json:"html_url"`
+	Description     string
+	Owner           Owner
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 	PushedAt        time.Time `json:"pushed_at"`
