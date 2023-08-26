@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const RepoURL string = "https://api.github.com/search/repositories"
+
 // Owner struct is the author of the repo.
 type Owner struct {
 	Login string
