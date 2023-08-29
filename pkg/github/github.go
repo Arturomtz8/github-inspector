@@ -47,7 +47,7 @@ func SearchGithubTrending(term, APIurl string) (*TrendingSearchResult, error) {
 	// q := url.QueryEscape(strings.Join(terms, " "))
 	term = url.QueryEscape(term)
 	// https://api.github.com/search/issues?q=stress+test+label:bug+language:python+state:closed&per_page=100
-	resp, err := http.Get(APIurl + "?q=archived:false+language:" + term + "&per_page=5&sort=stars&order=desc")
+	resp, err := http.Get(APIurl + "?q=stars:<=20000&stars:10000..15000+archived:false+language:" + term + "&per_page=5&sort=stars&order=desc")
 	if err != nil {
 		return nil, err
 	}
