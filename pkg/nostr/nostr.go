@@ -5,10 +5,10 @@ import (
 	"context"
 	"log"
 	"os"
-	"sync"
 	"text/template"
 
 	"github.com/nbd-wtf/go-nostr"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/Arturomtz8/github-inspector/pkg/github"
 )
@@ -16,7 +16,7 @@ import (
 // PusblishRepos function get the repos info,
 // parse them and publish them to Nostr relays concurrently.
 func PusblishRepos() error {
-	wg := sync.WaitGroup{}
+	g := new(errgroup.Group)
 
 	repos, err := github.SearchGithubTrending("Go", github.RepoURL)
 	if err != nil {
@@ -28,15 +28,17 @@ func PusblishRepos() error {
 		return err
 	}
 
-	wg.Add(len(reposContent))
 	for _, repo := range reposContent {
-		go func(repo string) {
-			defer wg.Done()
-			publishRepo(repo)
-		}(repo)
+		repo := repo
+		log.Printf("repo: %s", repo)
+		g.Go(func() error {
+			return publishRepo(repo)
+		})
 	}
 
-	wg.Wait()
+	if err := g.Wait(); err != nil {
+		log.Fatalf("error ocurred %v", err)
+	}
 
 	return nil
 }
