@@ -85,7 +85,10 @@ func publishRepo(content string) error {
 
 	// publish the event to two relays
 	ctx := context.Background()
-	for _, url := range []string{"wss://nostr.danvergara.com", "wss://relay.danvergara.com"} {
+	for _, url := range []string{
+		"wss://nostr.danvergara.com",
+		"wss://relay.nostr.band",
+	} {
 		relay, err := nostr.RelayConnect(ctx, url)
 		if err != nil {
 			return err
