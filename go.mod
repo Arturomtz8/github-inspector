@@ -3,8 +3,10 @@ module github.com/Arturomtz8/github-inspector
 go 1.20
 
 require (
+	github.com/nbd-wtf/go-nostr v0.21.1
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
+	golang.org/x/sync v0.3.0
 )
 
 require (
@@ -23,7 +25,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/nbd-wtf/go-nostr v0.21.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/puzpuzpuz/xsync v1.5.2 // indirect
