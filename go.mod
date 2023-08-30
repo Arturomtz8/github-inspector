@@ -7,7 +7,7 @@ require (
 	github.com/nbd-wtf/go-nostr v0.21.1
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/sync v0.3.0
+	golang.org/x/time v0.3.0
 )
 
 require (
