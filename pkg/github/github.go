@@ -1,6 +1,7 @@
 package github
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,6 +14,13 @@ import (
 )
 
 const (
+	// TimeToday is limit of the current day.
+	TimeToday = "daily"
+	// TimeWeek will focus on the complete week
+	TimeWeek = "weekly"
+	// TimeMonth include the complete month
+	TimeMonth = "monthly"
+	// Default GitHub URL.
 	RepoURL string = "https://api.github.com/search/repositories"
 	// Standard mode: github.com/trending
 	modeRepositories = "repositories"
@@ -84,40 +92,46 @@ func SearchGithubTrending(term, APIurl string) (*TrendingSearchResult, error) {
 }
 
 // GetProjects provides a slice of Projects filtered by the given time and language.
-func GetTrendingRepos(time, language, trendingURL string) (*TrendingSearchResult, error) {
+func GetTrendingRepos(time, language string) (*TrendingSearchResult, error) {
 	var repos TrendingSearchResult
 
-	// Generate the correct URL to call
+	// Generate the correct URL to call.
 	u, err := generateURL(modeRepositories, time, language)
 	if err != nil {
 		return nil, err
 	}
 
-	// Receive document
+	// Receive document.
 	res, err := http.Get(u.String())
-	if err != nil {
-		return nil, err
-	}
-
-	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
 
-	// Query our information
+	b := new(bytes.Buffer)
+	_, err = b.ReadFrom(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	doc, err := goquery.NewDocumentFromReader(b)
+	if err != nil {
+		return nil, err
+	}
+
+	// Query our information.
 	doc.Find(".Box article.Box-row").Each(func(_ int, s *goquery.Selection) {
-		// Collect project information
+		// Collect project information.
 		name := getProjectName(s.Find("h2 a").Text())
 
-		// Split name (like "andygrunwald/go-trending") into owner ("andygrunwald") and repository name ("go-trending"")
+		// Split name (like "andygrunwald/go-trending") into owner ("andygrunwald") and repository name ("go-trending"").
 		splittedName := strings.SplitAfterN(name, "/", 2)
 
 		owner := splittedName[0][:len(splittedName[0])-1]
 		owner = strings.TrimSpace(owner)
 		repositoryName := strings.TrimSpace(splittedName[1])
 
-		// Overwrite name to be 100% sure it contains no space between owner and repo name
+		// Overwrite name to be 100% sure it contains no space between owner and repo name.
 		name = fmt.Sprintf("%s/%s", owner, repositoryName)
 
 		address, exists := s.Find("h2 a").First().Attr("href")
@@ -133,11 +147,10 @@ func GetTrendingRepos(time, language, trendingURL string) (*TrendingSearchResult
 		starsString = strings.TrimSpace(starsString)
 
 		// Replace english thousand separator ","
+		// We can safely ignore the error,
+		// since we're ok with a zero values if somethings goes wrong.
 		starsString = strings.Replace(starsString, ",", "", 1)
-		stars, err := strconv.Atoi(starsString)
-		if err != nil {
-			stars = 0
-		}
+		stars, _ := strconv.Atoi(starsString)
 
 		p := &RepoTrending{
 			FullName: name,
