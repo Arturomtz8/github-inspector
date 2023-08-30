@@ -3,22 +3,32 @@ package nostr
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"text/template"
+	"time"
 
 	"github.com/nbd-wtf/go-nostr"
-	"golang.org/x/sync/errgroup"
+	"golang.org/x/time/rate"
 
 	"github.com/Arturomtz8/github-inspector/pkg/github"
 )
 
-// PusblishRepos function get the repos info,
-// parse them and publish them to Nostr relays concurrently.
-func PusblishRepos() error {
-	g := new(errgroup.Group)
+// defaulRepoLen defaults to 10 repos to be publish, it can be less if
+// the length of the response is smaller.
+const defaulRepoLen = 10
 
-	repos, err := github.SearchGithubTrending("Go", github.RepoURL)
+// PusblishRepos function get the repos info,
+// parse them and publish them to Nostr relays.
+func PusblishRepos(ctx context.Context) error {
+	var repoLen int
+
+	// Makes a request every 6 secs/6000 miliseconds,
+	// since most relays have strict rate limits.
+	limiter := rate.NewLimiter(rate.Every(6000*time.Millisecond), 1)
+
+	repos, err := github.GetTrendingRepos(github.TimeToday, "Go")
 	if err != nil {
 		return err
 	}
@@ -28,16 +38,26 @@ func PusblishRepos() error {
 		return err
 	}
 
-	for _, repo := range reposContent {
-		repo := repo
-		log.Printf("repo: %s", repo)
-		g.Go(func() error {
-			return publishRepo(repo)
-		})
+	// if the length of the response is smaller,
+	// then add that value to repoLen,
+	// otherwise go with default.
+	if len(reposContent) <= defaulRepoLen {
+		repoLen = len(reposContent)
+	} else {
+		repoLen = defaulRepoLen
 	}
 
-	if err := g.Wait(); err != nil {
-		log.Fatalf("error ocurred %v", err)
+	for i := 0; i < repoLen; i++ {
+		if err := limiter.Wait(ctx); err != nil {
+			continue
+		}
+		repo := reposContent[i]
+		log.Printf("repo: %s", repo)
+		if err := publishRepo(repo); err != nil {
+			// No need to break loop, just continue to the next one.
+			log.Printf("error occurred publishing event %v", err)
+			continue
+		}
 	}
 
 	return nil
@@ -87,15 +107,16 @@ func publishRepo(content string) error {
 	ctx := context.Background()
 	for _, url := range []string{
 		"wss://nostr.danvergara.com",
+		"wss://relay.damus.io/",
 		"wss://relay.nostr.band",
 	} {
 		relay, err := nostr.RelayConnect(ctx, url)
 		if err != nil {
 			return err
 		}
-		_, err = relay.Publish(ctx, ev)
+		status, err := relay.Publish(ctx, ev)
 		if err != nil {
-			return err
+			return fmt.Errorf("error publishing event %v with status %d", err, status)
 		}
 
 		log.Printf("published to %s\n", url)
