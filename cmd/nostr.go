@@ -4,6 +4,7 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -17,7 +18,8 @@ var nostrCmd = &cobra.Command{
 	Short: "Publish Go Repos to Nostr Relays",
 	Long:  `Publish Go Repos data to Nostr Relays`,
 	Run: func(_ *cobra.Command, _ []string) {
-		if err := nostr.PusblishRepos(); err != nil {
+		ctx := context.Background()
+		if err := nostr.PusblishRepos(ctx); err != nil {
 			log.Fatal(err)
 		}
 	},
