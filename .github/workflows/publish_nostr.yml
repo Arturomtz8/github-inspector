@@ -3,9 +3,8 @@ name: Publish Golang Trending Repos to Nostr
 on:
   schedule:
     # Publish to Nostr twice a day
-    # 9 AM CST
-    # 9 PM CST
-    - cron:  '0 2,14 * * *'
+    # 11 AM CST
+    - cron:  '0 16 * * *'
 
 jobs:
   publish_to_nostr:
