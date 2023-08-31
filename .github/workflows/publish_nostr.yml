@@ -17,4 +17,6 @@ jobs:
         with:
           go-version: '1.20'
       - name: Publish to Nostr 
+        env:
+          NOSTR_HEX_SK: ${{ secrets.NOSTR_HEX_SK }}
         run: go run main.go nostr
