@@ -3,9 +3,8 @@ name: Publish Golang Trending Repos to Nostr
 on:
   schedule:
     # Publish to Nostr twice a day
-    # 9 AM CST
-    # 9 PM CST
-    - cron:  '0 2,14 * * *'
+    # 11 AM CST
+    - cron:  '0 16 * * *'
 
 jobs:
   publish_to_nostr:
@@ -17,4 +16,6 @@ jobs:
         with:
           go-version: '1.20'
       - name: Publish to Nostr 
+        env:
+          NOSTR_HEX_SK: ${{ secrets.NOSTR_HEX_SK }}
         run: go run main.go nostr
