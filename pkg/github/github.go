@@ -3,6 +3,7 @@ package github
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -89,6 +90,68 @@ func SearchGithubTrending(term, APIurl string) (*TrendingSearchResult, error) {
 
 	result.TotalCount = len(result.Items)
 	return &result, nil
+}
+
+// GetRepository returns a repository given the name of the repo, the underylying
+// programming language and the author. The first option is cosindered mandatory.
+// The latter parameters are optionals and empty strings can be safely passed into The
+// function calls.
+func GetRepository(apiURL, name, lang, author string) (*RepoTrending, error) {
+	baseUrl, err := url.Parse(apiURL)
+	if err != nil {
+		return nil, err
+	}
+
+	params, err := encodeQueryComponents(name, lang, author)
+	if err != nil {
+		return nil, err
+	}
+
+	baseUrl.RawQuery = params
+
+	resp, err := http.Get(baseUrl.String())
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("invalid request with status %s", resp.Status)
+	}
+
+	var result TrendingSearchResult
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	if len(result.Items) != 0 {
+		return result.Items[0], nil
+	}
+
+	return nil, errors.New("project not found")
+}
+
+// encodeQueryComponents returns encoded query params at once.
+func encodeQueryComponents(name, lang, author string) (string, error) {
+	params := url.Values{}
+	if name == "" {
+		return "", errors.New("name is empty")
+	}
+
+	q := fmt.Sprintf("%s in:name", name)
+
+	if author != "" {
+		q = q + fmt.Sprintf(" user:%s", author)
+	}
+
+	if lang != "" {
+		q = q + fmt.Sprintf(" language:%s", lang)
+	}
+
+	params.Add("q", q)
+
+	return params.Encode(), nil
 }
 
 // GetProjects provides a slice of Projects filtered by the given time and language.
