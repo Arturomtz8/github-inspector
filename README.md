@@ -3,7 +3,7 @@ Search and bring easily repos from github into different mediums, e.g: Telegram 
 
 ## Telegram
 
-This project provides libraries to run a Telegram bot called [Github Inspector](https://t.me/GithubInspectorBot), which can answer with trending repositories on GitHub based on the language you provide as input.
+This project provides libraries to run a Telegram bot called [Github Inspector](https://t.me/GithubInspectorBot), which can answer with trending repositories on GitHub based on the language you provide as input. You can find the code and more information about the bot [here.](https://github.com/Arturomtz8/github-inspector-telegram)
 
 <img src="screenshots/github-inspector-telegram-bot.png"/>
 
