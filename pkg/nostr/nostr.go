@@ -31,7 +31,7 @@ func PusblishRepos(ctx context.Context, sk, redisAddr, redisPassword string) err
 
 	// Makes a request every 6 secs/6000 miliseconds,
 	// since most relays have strict rate limits.
-	limiter := rate.NewLimiter(rate.Every(6000*time.Millisecond), 1)
+	limiter := rate.NewLimiter(rate.Every(8000*time.Millisecond), 1)
 
 	repos, err := github.GetTrendingRepos(github.TimeToday, "Go")
 	if err != nil {
