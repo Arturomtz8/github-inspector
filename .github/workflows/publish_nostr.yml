@@ -18,4 +18,6 @@ jobs:
       - name: Publish to Nostr 
         env:
           NOSTR_HEX_SK: ${{ secrets.NOSTR_HEX_SK }}
+          REDIS_ADDR: ${{ secrets.REDIS_ADDR }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
         run: go run main.go nostr
