@@ -15,14 +15,10 @@ import (
 	"github.com/Arturomtz8/github-inspector/pkg/github"
 )
 
-// defaulRepoLen defaults to 10 repos to be publish, it can be less if
-// the length of the response is smaller.
-const defaulRepoLen = 10
-
 // PusblishRepos function get the repos info,
 // parse them and publish them to Nostr relays.
 func PusblishRepos(ctx context.Context, sk, redisAddr, redisPassword string) error {
-	// Makes a request every 6 secs/6000 miliseconds,
+	// Makes a request every 8 secs/8000 miliseconds,
 	// since most relays have strict rate limits.
 	limiter := rate.NewLimiter(rate.Every(8000*time.Millisecond), 1)
 
