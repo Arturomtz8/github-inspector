@@ -22,13 +22,6 @@ const defaulRepoLen = 10
 // PusblishRepos function get the repos info,
 // parse them and publish them to Nostr relays.
 func PusblishRepos(ctx context.Context, sk, redisAddr, redisPassword string) error {
-	rdb := redis.NewClient(&redis.Options{
-		// Addr:     "localhost:6379",
-		Addr:     redisAddr,
-		Password: redisPassword,
-		DB:       0, // use default DB
-	})
-
 	// Makes a request every 6 secs/6000 miliseconds,
 	// since most relays have strict rate limits.
 	limiter := rate.NewLimiter(rate.Every(8000*time.Millisecond), 1)
@@ -38,33 +31,50 @@ func PusblishRepos(ctx context.Context, sk, redisAddr, redisPassword string) err
 		return err
 	}
 
-	for _, repo := range repos.Items {
+	filteredRepos, err := filterReposBasedKeys(ctx, redisAddr, redisPassword, repos.Items)
+	if err != nil {
+		return err
+	}
+
+	for _, repo := range filteredRepos {
 		if err := limiter.Wait(ctx); err != nil {
 			continue
 		}
 
-		// A redis instance is going to be used to store seen repos.
-		// If the repos is not seen, in other words, if its full name is present in Redis as a key,
-		// its full name will be store for 36 hrs and the repo will be published.
-		// If a repo is seen, the repository's data will not be published on Nostr.
+		tmplRepo, err := tmplRepocontent(repo)
+		if err != nil {
+			// No need to break loop, just continue to the next one.
+			log.Printf("error occurred parsing repo into template: %v", err)
+			continue
+		}
+
+		log.Printf("repo: %s", tmplRepo)
+		if err := publishRepo(tmplRepo, sk); err != nil {
+			// No need to break loop, just continue to the next one.
+			log.Printf("error occurred publishing repo: %v", err)
+			continue
+		}
+	}
+
+	return nil
+}
+
+func filterReposBasedKeys(ctx context.Context, redisAddr, redisPassword string, repos []*github.RepoTrending) ([]*github.RepoTrending, error) {
+	var filteredRepos []*github.RepoTrending
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     redisAddr,
+		Password: redisPassword,
+		DB:       0, // use default DB
+	})
+
+	for _, repo := range repos {
 		repoKey, err := rdb.Get(ctx, repo.FullName).Result()
 		if err == redis.Nil {
 			log.Printf("%s is not seen", repo.FullName)
 
 			// the repos is not seen, so the repo can be published.
-			tmplRepo, err := tmplRepocontent(repo)
-			if err != nil {
-				// No need to break loop, just continue to the next one.
-				log.Printf("error occurred parsing repo into template: %v", err)
-				continue
-			}
-
-			log.Printf("repo: %s", tmplRepo)
-			if err := publishRepo(tmplRepo, sk); err != nil {
-				// No need to break loop, just continue to the next one.
-				log.Printf("error occurred publishing repo: %v", err)
-				continue
-			}
+			filteredRepos = append(filteredRepos, repo)
 
 			// Store the key for 36 hrs.
 			// 36 * 60 * 60 = 129600.
@@ -83,7 +93,7 @@ func PusblishRepos(ctx context.Context, sk, redisAddr, redisPassword string) err
 		}
 	}
 
-	return nil
+	return filteredRepos, nil
 }
 
 // tmplRepocontent function parse repos into a template.
