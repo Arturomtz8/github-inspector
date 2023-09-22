@@ -37,8 +37,7 @@ func TestFilteredRepos(t *testing.T) {
 
 	ctx := context.Background()
 
-	redisAddr := os.Getenv("REDIS_ADDR")
-	redisPassword := os.Getenv("REDIS_PASSWORD")
+	redisURI := os.Getenv("REDIS_URI")
 
 	// simulates an scenario where repos can be duplicated.
 	repos := []*github.RepoTrending{
@@ -68,22 +67,21 @@ func TestFilteredRepos(t *testing.T) {
 		},
 	}
 
-	filteredRepos, err := filterReposBasedKeys(ctx, redisAddr, redisPassword, repos)
+	filteredRepos, err := filterReposBasedKeys(ctx, redisURI, repos)
 
 	require.NoError(t, err)
 	// the lenght of the repos slice should be 4 because there are only 4 unique repos.
 	require.Len(t, filteredRepos, 4)
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     redisAddr,
-		Password: redisPassword,
-		DB:       0, // use default DB
-	})
+	addr, _ := redis.ParseURL(redisURI)
+
+	rdb := redis.NewClient(addr)
+
 	// add duplicated repos to redis.
 	rdb.Set(ctx, "argoproj/argo-workflows", "https://github.com/argoproj/argo-workflows", time.Second*2).Err()
 	rdb.Set(ctx, "go-resty/resty", "https://github.com/go-resty/resty", time.Second*2).Err()
 
-	filteredRepos, err = filterReposBasedKeys(ctx, redisAddr, redisPassword, repos)
+	filteredRepos, err = filterReposBasedKeys(ctx, redisURI, repos)
 	require.NoError(t, err)
 	// the repo should be empty since there's no new repo.
 	require.Len(t, filteredRepos, 0)
@@ -91,7 +89,7 @@ func TestFilteredRepos(t *testing.T) {
 	// let the keys expire.
 	time.Sleep(time.Second * 2)
 
-	filteredRepos, err = filterReposBasedKeys(ctx, redisAddr, redisPassword, repos)
+	filteredRepos, err = filterReposBasedKeys(ctx, redisURI, repos)
 	require.NoError(t, err)
 	// should be 2 repos since dblab and tofu have longer expire times.
 	require.Len(t, filteredRepos, 2)

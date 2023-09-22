@@ -20,10 +20,10 @@ var nostrCmd = &cobra.Command{
 	Long:  `Publish Go Repos data to Nostr Relays`,
 	Run: func(_ *cobra.Command, _ []string) {
 		sk := os.Getenv("NOSTR_HEX_SK")
-		redisURL := os.Getenv("REDIS_ADDR")
-		redisPassword := os.Getenv("REDIS_PASSWORD")
+		redisURI := os.Getenv("REDIS_URI")
+
 		ctx := context.Background()
-		if err := nostr.PusblishRepos(ctx, sk, redisURL, redisPassword); err != nil {
+		if err := nostr.PusblishRepos(ctx, sk, redisURI); err != nil {
 			log.Fatal(err)
 		}
 	},

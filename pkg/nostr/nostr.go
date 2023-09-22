@@ -17,7 +17,7 @@ import (
 
 // PusblishRepos function get the repos info,
 // parse them and publish them to Nostr relays.
-func PusblishRepos(ctx context.Context, sk, redisAddr, redisPassword string) error {
+func PusblishRepos(ctx context.Context, sk, redisURI string) error {
 	// Makes a request every 8 secs/8000 miliseconds,
 	// since most relays have strict rate limits.
 	limiter := rate.NewLimiter(rate.Every(8000*time.Millisecond), 1)
@@ -27,7 +27,7 @@ func PusblishRepos(ctx context.Context, sk, redisAddr, redisPassword string) err
 		return err
 	}
 
-	filteredRepos, err := filterReposBasedKeys(ctx, redisAddr, redisPassword, repos.Items)
+	filteredRepos, err := filterReposBasedKeys(ctx, redisURI, repos.Items)
 	if err != nil {
 		return err
 	}
@@ -55,14 +55,17 @@ func PusblishRepos(ctx context.Context, sk, redisAddr, redisPassword string) err
 	return nil
 }
 
-func filterReposBasedKeys(ctx context.Context, redisAddr, redisPassword string, repos []*github.RepoTrending) ([]*github.RepoTrending, error) {
+func filterReposBasedKeys(ctx context.Context, redisURI string, repos []*github.RepoTrending) ([]*github.RepoTrending, error) {
 	var filteredRepos []*github.RepoTrending
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     redisAddr,
-		Password: redisPassword,
-		DB:       0, // use default DB
-	})
+	// redisURI := "rediss://default:AVNS_FMPwK8_PVi8JbXhNE_U@redis-nostr-awesome-projects-daniel-bb11.aivencloud.com:21705"
+
+	addr, err := redis.ParseURL(redisURI)
+	if err != nil {
+		return nil, err
+	}
+
+	rdb := redis.NewClient(addr)
 
 	for _, repo := range repos {
 		repoKey, err := rdb.Get(ctx, repo.FullName).Result()
