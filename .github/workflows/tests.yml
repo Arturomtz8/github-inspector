@@ -24,5 +24,4 @@ jobs:
       - name: Test
         run: go test -v ./...
         env:
-          REDIS_ADDR: localhost:6379
-          REDIS_PASSWORD: ""
+          REDIS_URI: redis://default:@localhost:6379
