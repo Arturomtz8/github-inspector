@@ -3,7 +3,6 @@ package nostr
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"log"
 	"text/template"
 	"time"
@@ -151,7 +150,9 @@ func publishRepo(content, sk string) error {
 		}
 		status, err := relay.Publish(ctx, ev)
 		if err != nil {
-			return fmt.Errorf("error publishing event %v with status %d", err, status)
+			// Moves on to the next relay.
+			log.Printf("error publishing event %v with status %d", err, status)
+			continue
 		}
 
 		log.Printf("published to %s\n", url)
