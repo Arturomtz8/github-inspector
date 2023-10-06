@@ -18,9 +18,16 @@ import (
 // PusblishRepos function get the repos info,
 // parse them and publish them to Nostr relays.
 func PusblishRepos(ctx context.Context, sk, redisURI string) error {
-	// Makes a request every 8 secs/8000 miliseconds,
+	// Makes 10 request every 80 secs,
 	// since most relays have strict rate limits.
-	limiter := rate.NewLimiter(rate.Every(8000*time.Millisecond), 1)
+	// Damus' relay has been so anoying to publish to,
+	// because it has a very weird rate limite,
+	// we found out that it only allows 10 events every 80 seconds.
+	// e.g.
+	// if the execution starts at 16:20:24 UTC,
+	// it'll fail at 16:21:44 UTC,
+	// after consistently publishing 10 events.
+	limiter := rate.NewLimiter(rate.Every(80*time.Second), 10)
 
 	repos, err := github.GetTrendingRepos(github.TimeToday, "Go")
 	if err != nil {
