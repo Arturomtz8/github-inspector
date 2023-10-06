@@ -142,6 +142,8 @@ func publishRepo(content, sk string) error {
 		"wss://nostr.danvergara.com",
 		"wss://relay.damus.io/",
 		"wss://relay.nostr.band",
+		"wss://public.relaying.io",
+		"wss://relay.snort.social",
 	} {
 		relay, err := nostr.RelayConnect(ctx, url)
 		if err != nil {
