@@ -3,7 +3,6 @@ package nostr
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"log"
 	"text/template"
 	"time"
@@ -18,9 +17,16 @@ import (
 // PusblishRepos function get the repos info,
 // parse them and publish them to Nostr relays.
 func PusblishRepos(ctx context.Context, sk, redisURI string) error {
-	// Makes a request every 8 secs/8000 miliseconds,
+	// Makes 10 request every 80 secs,
 	// since most relays have strict rate limits.
-	limiter := rate.NewLimiter(rate.Every(8000*time.Millisecond), 1)
+	// Damus' relay has been so annoying to publish to,
+	// because it has a very weird rate limit,
+	// we found out that it only allows 10 events every 80 seconds.
+	// e.g.
+	// If the execution starts at 16:20:24 UTC,
+	// it'll fail at 16:21:44 UTC,
+	// after consistently publishing 10 events.
+	limiter := rate.NewLimiter(rate.Every(80*time.Second), 10)
 
 	repos, err := github.GetTrendingRepos(github.TimeToday, "Go")
 	if err != nil {
@@ -135,6 +141,8 @@ func publishRepo(content, sk string) error {
 		"wss://nostr.danvergara.com",
 		"wss://relay.damus.io/",
 		"wss://relay.nostr.band",
+		"wss://public.relaying.io",
+		"wss://relay.snort.social",
 	} {
 		relay, err := nostr.RelayConnect(ctx, url)
 		if err != nil {
@@ -142,7 +150,9 @@ func publishRepo(content, sk string) error {
 		}
 		status, err := relay.Publish(ctx, ev)
 		if err != nil {
-			return fmt.Errorf("error publishing event %v with status %d", err, status)
+			// Moves on to the next relay.
+			log.Printf("error publishing event %v with status %d", err, status)
+			continue
 		}
 
 		log.Printf("published to %s\n", url)
